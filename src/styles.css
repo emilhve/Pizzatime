@@ -33,7 +33,8 @@ a { color: inherit; }
 
 .topbar-mark { width: 11px; height: 11px; border-radius: 50%; background: #c73c31; }
 .account-actions { display: flex; align-items: center; gap: 12px; margin-left: auto; letter-spacing: 0; }
-.account-name { display: flex; align-items: center; gap: 7px; color: #536457; font-size: 13px; font-weight: 600; }
+.account-name { display: flex; align-items: center; gap: 7px; padding: 7px 8px; border: 0; border-radius: 4px; background: transparent; color: #536457; cursor: pointer; font-size: 13px; font-weight: 600; }
+.account-name:hover, .account-name[aria-current="page"] { background: #e9efea; color: #2e7054; }
 .account-username { display: block; max-width: min(30vw, 160px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .account-button, .icon-button, .rate-button, .text-button, .primary-button { cursor: pointer; }
 .account-button { display: flex; align-items: center; gap: 7px; padding: 7px 10px; border: 1px solid #c4d1c5; border-radius: 4px; background: #fff; color: #2e7054; font-size: 13px; font-weight: 700; }
@@ -44,6 +45,51 @@ a { color: inherit; }
 .eyebrow, .section-kicker { margin: 0; color: #ba3b32; font-size: 11px; font-weight: 700; text-transform: uppercase; }
 h1 { margin: 6px 0 0; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(54px, 6vw, 88px); font-weight: 700; line-height: 1.05; letter-spacing: 0; }
 .subtitle { margin: 8px 0 0; color: #536457; font-size: 22px; }
+
+.profile-page { max-width: 720px; padding: 42px 0 80px; }
+.profile-back { display: inline-flex; align-items: center; gap: 7px; padding: 5px 0; border: 0; background: transparent; color: #2e7054; cursor: pointer; font-size: 13px; font-weight: 700; }
+.profile-back:hover { text-decoration: underline; }
+.profile-page h1 { margin: 24px 0 32px; font-size: 48px; }
+.profile-details { margin: 0; border-top: 1px solid #d9ded8; }
+.profile-details div { display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 20px; padding: 18px 0; border-bottom: 1px solid #d9ded8; }
+.profile-details dt { color: #68766b; font-size: 13px; font-weight: 700; }
+.profile-details dd { min-width: 0; margin: 0; overflow-wrap: anywhere; font-size: 15px; }
+.profile-ratings { margin-top: 44px; }
+.profile-ratings h2 { font-size: 28px; }
+.profile-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 20px; border-top: 1px solid #d9ded8; border-bottom: 1px solid #d9ded8; }
+.profile-stats > div { display: flex; flex-direction: column; gap: 3px; padding: 18px 0; }
+.profile-stats > div + div { padding-left: 24px; border-left: 1px solid #d9ded8; }
+.profile-stat-value { font-family: Georgia, 'Times New Roman', serif; font-size: 32px; font-weight: 700; line-height: 1.1; }
+.profile-stat-label { color: #68766b; font-size: 12px; }
+.profile-rating-list { margin: 12px 0 0; padding: 0; list-style: none; }
+.profile-rating-list li { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 72px; padding: 12px 0; border-bottom: 1px solid #d9ded8; }
+.profile-rating-copy { display: flex; flex-direction: column; min-width: 0; }
+.profile-rating-copy strong { overflow-wrap: anywhere; font-size: 15px; }
+.profile-rating-copy span { margin-top: 2px; color: #68766b; font-size: 13px; }
+.profile-rating-button { display: inline-flex; align-items: center; justify-content: center; gap: 5px; flex: none; min-width: 72px; min-height: 38px; padding: 6px 10px; border: 1px solid #d9ded8; border-radius: 4px; background: #fff; color: #a56d13; cursor: pointer; font-size: 14px; font-weight: 700; }
+.profile-rating-button:hover { border-color: #a56d13; background: #fff9ed; }
+.admin-add-place { margin-top: 52px; }
+.admin-add-place h2 { font-size: 28px; }
+.admin-place-form { display: grid; gap: 8px; max-width: 520px; margin-top: 20px; }
+.admin-place-form label { font-size: 13px; font-weight: 700; }
+.admin-place-form label:not(:first-child) { margin-top: 10px; }
+.admin-place-form input { width: 100%; min-height: 44px; padding: 9px 12px; border: 1px solid #bcc8bd; border-radius: 4px; outline: none; background: #fff; color: #202421; }
+.admin-place-form input:focus { border-color: #2f6c54; box-shadow: 0 0 0 3px #2f6c5425; }
+.admin-place-form .primary-button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; justify-self: start; margin-top: 8px; }
+.form-success { margin: 0; color: #2e7054; font-size: 13px; }
+.admin-users { margin-top: 52px; }
+.admin-users-heading { display: flex; align-items: end; justify-content: space-between; gap: 16px; }
+.admin-users-heading h2 { font-size: 28px; }
+.admin-users-heading span { color: #68766b; font-size: 13px; white-space: nowrap; }
+.admin-user-list { margin: 16px 0 0; padding: 0; border-top: 1px solid #d9ded8; list-style: none; }
+.admin-user-list li { display: flex; align-items: center; gap: 16px; min-height: 66px; padding: 10px 0; border-bottom: 1px solid #d9ded8; }
+.admin-user-info { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.admin-user-info strong { font-size: 14px; overflow-wrap: anywhere; }
+.admin-user-info span { color: #68766b; font-size: 12px; overflow-wrap: anywhere; }
+.admin-user-role, .admin-user-self { color: #68766b; font-size: 12px; }
+.admin-delete-button { color: #a33329; }
+.admin-delete-button:hover:not(:disabled) { background: #f9e9e6; }
+.admin-delete-button:disabled { cursor: default; opacity: 0.4; }
 
 .browse-layout { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(280px, 0.8fr); gap: 48px; padding-top: 38px; align-items: start; }
 .section-heading { display: flex; justify-content: space-between; align-items: end; gap: 16px; margin-bottom: 24px; }
@@ -119,6 +165,10 @@ h2 { margin: 4px 0 0; font-family: Georgia, 'Times New Roman', serif; font-size:
 }
 
 @media (max-width: 440px) {
+  .profile-page h1 { font-size: 38px; }
+  .profile-details div { grid-template-columns: 1fr; gap: 4px; }
+  .profile-stats > div + div { padding-left: 16px; }
+  .admin-user-list li { gap: 8px; }
   .restaurant-row { align-items: flex-start; flex-direction: column; gap: 6px; }
   .restaurant-actions { width: 100%; justify-content: space-between; gap: 8px; }
   .dialog { padding: 24px; }

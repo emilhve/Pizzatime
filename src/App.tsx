@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { LogOut, Star, UserRound } from 'lucide-react';
+import { ArrowLeft, LogOut, Star, UserRound } from 'lucide-react';
 import type { Session } from '@supabase/supabase-js';
+import { AdminAddRestaurant } from './AdminAddRestaurant';
+import { AdminUsers } from './AdminUsers';
 import { AuthDialog } from './AuthDialog';
 import { RatingDialog } from './RatingDialog';
 import { supabase } from './lib/supabase';
@@ -9,8 +11,8 @@ type Restaurant = {
   id: string;
   name: string;
   address: string | null;
-  latitude: number;
-  longitude: number;
+  latitude: number | null;
+  longitude: number | null;
 };
 
 type RatingSummary = {
@@ -18,6 +20,16 @@ type RatingSummary = {
   average_rating: string | number;
   rating_count: number;
 };
+
+async function fetchRestaurants(): Promise<Restaurant[]> {
+  const { data, error } = await supabase
+    .from('restaurants')
+    .select('id, name, address, latitude, longitude')
+    .order('name');
+
+  if (error) throw error;
+  return data ?? [];
+}
 
 async function fetchRatingSummaries(): Promise<Record<string, RatingSummary>> {
   const { data, error } = await supabase.rpc('get_restaurant_rating_averages');
@@ -28,13 +40,17 @@ async function fetchRatingSummaries(): Promise<Record<string, RatingSummary>> {
 }
 
 function App() {
+  const [page, setPage] = useState<'home' | 'profile'>(() => window.location.pathname === '/profile' ? 'profile' : 'home');
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [session, setSession] = useState<Session | null>(null);
   const [authReady, setAuthReady] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
+  const [role, setRole] = useState<'user' | 'admin' | null>(null);
+  const [profileLoaded, setProfileLoaded] = useState(false);
   const [ratings, setRatings] = useState<Record<string, number>>({});
+  const [ratingsStatus, setRatingsStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [ratingSummaries, setRatingSummaries] = useState<Record<string, RatingSummary>>({});
   const [summaryStatus, setSummaryStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [authOpen, setAuthOpen] = useState(false);
@@ -42,7 +58,20 @@ function App() {
   const [ratingBusy, setRatingBusy] = useState(false);
   const [ratingError, setRatingError] = useState('');
   const activeUserId = useRef<string | null>(null);
+  const restaurantRequestId = useRef(0);
   const summaryRequestId = useRef(0);
+
+  function navigate(nextPage: 'home' | 'profile') {
+    const path = nextPage === 'profile' ? '/profile' : '/';
+    if (window.location.pathname !== path) window.history.pushState(null, '', path);
+    setPage(nextPage);
+  }
+
+  useEffect(() => {
+    const onPopState = () => setPage(window.location.pathname === '/profile' ? 'profile' : 'home');
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
 
   const refreshRatingSummaries = useCallback(async () => {
     const requestId = ++summaryRequestId.current;
@@ -86,30 +115,30 @@ function App() {
     return () => window.removeEventListener('focus', refreshOnFocus);
   }, [refreshRatingSummaries]);
 
-  useEffect(() => {
-    let active = true;
-
-    async function loadRestaurants() {
-      const { data, error } = await supabase
-        .from('restaurants')
-        .select('id, name, address, latitude, longitude')
-        .order('name');
-
-      if (!active) return;
-
-      if (error) {
-        setStatus('error');
-      } else {
-        setRestaurants(data ?? []);
-        setStatus('ready');
-      }
+  const refreshRestaurants = useCallback(async () => {
+    const requestId = ++restaurantRequestId.current;
+    try {
+      const data = await fetchRestaurants();
+      if (requestId !== restaurantRequestId.current) return;
+      setRestaurants(data);
+      setStatus('ready');
+    } catch {
+      if (requestId !== restaurantRequestId.current) return;
+      setStatus('error');
     }
+  }, []);
 
-    void loadRestaurants();
-
-    return () => {
-      active = false;
-    };
+  useEffect(() => {
+    const requestId = ++restaurantRequestId.current;
+    void fetchRestaurants().then((data) => {
+      if (requestId !== restaurantRequestId.current) return;
+      setRestaurants(data);
+      setStatus('ready');
+    }).catch(() => {
+      if (requestId !== restaurantRequestId.current) return;
+      setStatus('error');
+    });
+    return () => { restaurantRequestId.current += 1; };
   }, []);
 
   useEffect(() => {
@@ -119,7 +148,10 @@ function App() {
       if (nextSession?.user.id !== activeUserId.current) {
         activeUserId.current = nextSession?.user.id ?? null;
         setUsername(null);
+        setRole(null);
+        setProfileLoaded(false);
         setRatings({});
+        setRatingsStatus('loading');
         setRatingRestaurant(null);
       }
     });
@@ -135,15 +167,20 @@ function App() {
 
     async function loadAccount() {
       const [profileResult, ratingsResult] = await Promise.all([
-        supabase.from('users').select('username').eq('user_id', userId).single(),
+        supabase.from('users').select('username, role').eq('user_id', userId).single(),
         supabase.from('userratings').select('restaurant_id, rating').eq('user_id', userId),
       ]);
 
       if (!active) return;
 
       setUsername(profileResult.data?.username ?? null);
+      setRole(profileResult.data?.role === 'admin' ? 'admin' : 'user');
+      setProfileLoaded(true);
       if (!ratingsResult.error) {
         setRatings(Object.fromEntries((ratingsResult.data ?? []).map((item) => [item.restaurant_id, item.rating])));
+        setRatingsStatus('ready');
+      } else {
+        setRatingsStatus('error');
       }
     }
 
@@ -162,6 +199,16 @@ function App() {
       `${restaurant.name} ${restaurant.address ?? ''}`.toLocaleLowerCase().includes(term),
     );
   }, [query, restaurants]);
+
+  const ratedRestaurants = useMemo(
+    () => restaurants.filter((restaurant) => ratings[restaurant.id] !== undefined),
+    [restaurants, ratings],
+  );
+  const ratingValues = Object.values(ratings);
+  const ratingCount = ratingValues.length;
+  const personalAverage = ratingCount > 0
+    ? (ratingValues.reduce((total, rating) => total + rating, 0) / ratingCount).toFixed(1)
+    : null;
 
   function openRating(restaurant: Restaurant) {
     if (!session) {
@@ -228,7 +275,9 @@ function App() {
         <div className="account-actions">
           {authReady && (session ? (
             <>
-              <span className="account-name"><UserRound size={16} aria-hidden="true" /><span className="account-username">{username ?? 'Account'}</span></span>
+              <button className="account-name" type="button" onClick={() => navigate('profile')} aria-label="Open your profile" aria-current={page === 'profile' ? 'page' : undefined}>
+                <UserRound size={16} aria-hidden="true" /><span className="account-username">{username ?? 'Account'}</span>
+              </button>
               <button className="icon-button" type="button" onClick={() => void supabase.auth.signOut()} aria-label="Sign out" title="Sign out">
                 <LogOut size={18} aria-hidden="true" />
               </button>
@@ -241,6 +290,69 @@ function App() {
         </div>
       </header>
 
+      {page === 'profile' ? (
+        <section className="profile-page" aria-labelledby="profile-title">
+          <button className="profile-back" type="button" onClick={() => navigate('home')}>
+            <ArrowLeft size={17} aria-hidden="true" /> Restaurants
+          </button>
+          <h1 id="profile-title">Your profile</h1>
+          {!authReady ? <p>Loading profile...</p> : session ? (
+            <>
+              <dl className="profile-details">
+                <div>
+                  <dt>Username</dt>
+                  <dd>{username ?? (profileLoaded ? 'Unavailable' : 'Loading...')}</dd>
+                </div>
+                <div>
+                  <dt>Email</dt>
+                  <dd>{session.user.email ?? 'Not available'}</dd>
+                </div>
+              </dl>
+
+              <section className="profile-ratings" aria-labelledby="profile-ratings-title">
+                <h2 id="profile-ratings-title">Your ratings</h2>
+                <div className="profile-stats">
+                  <div>
+                    <span className="profile-stat-value">{ratingsStatus === 'ready' ? ratingCount : '--'}</span>
+                    <span className="profile-stat-label">Restaurants rated</span>
+                  </div>
+                  <div>
+                    <span className="profile-stat-value">{ratingsStatus === 'ready' ? personalAverage ?? '-' : '--'}</span>
+                    <span className="profile-stat-label">Average rating</span>
+                  </div>
+                </div>
+
+                {ratingsStatus === 'loading' && <p className="list-message">Loading your ratings...</p>}
+                {ratingsStatus === 'error' && <p className="list-message">Your ratings could not be loaded.</p>}
+                {ratingsStatus === 'ready' && ratingCount === 0 && <p className="list-message">No restaurants rated yet.</p>}
+                {ratingsStatus === 'ready' && ratingCount > 0 && status === 'loading' && <p className="list-message">Loading restaurants...</p>}
+                {ratingsStatus === 'ready' && ratingCount > 0 && status === 'error' && <p className="list-message">The restaurant list could not be loaded.</p>}
+                {ratingsStatus === 'ready' && status === 'ready' && ratedRestaurants.length > 0 && (
+                  <ul className="profile-rating-list">
+                    {ratedRestaurants.map((restaurant) => (
+                      <li key={restaurant.id}>
+                        <div className="profile-rating-copy">
+                          <strong>{restaurant.name}</strong>
+                          {restaurant.address && <span>{restaurant.address}</span>}
+                        </div>
+                        <button className="profile-rating-button" type="button" onClick={() => openRating(restaurant)} aria-label={`Edit your rating for ${restaurant.name}: ${ratings[restaurant.id]} out of 5`} title="Edit rating">
+                          <Star size={17} fill="currentColor" aria-hidden="true" /> {ratings[restaurant.id]}/5
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+              {role === 'admin' && (
+                <>
+                  <AdminAddRestaurant onCreated={() => void refreshRestaurants()} />
+                  <AdminUsers currentUserId={session.user.id} onUserDeleted={() => void refreshRatingSummaries()} />
+                </>
+              )}
+            </>
+          ) : <button className="account-button" type="button" onClick={() => setAuthOpen(true)}>Sign in</button>}
+        </section>
+      ) : <>
       <section className="intro" aria-labelledby="page-title">
         <p className="eyebrow">Find your next slice</p>
         <h1 id="page-title">Pizzatime</h1>
@@ -286,6 +398,9 @@ function App() {
               <p className="list-message">No restaurants match your search.</p>
             )}
             {status === 'ready' && filteredRestaurants.map((restaurant) => {
+              const mapUrl = restaurant.latitude !== null && restaurant.longitude !== null
+                ? `https://www.google.com/maps?q=${restaurant.latitude},${restaurant.longitude}`
+                : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${restaurant.name}, ${restaurant.address ?? ''}, Padova, Italy`)}`;
               const summary = ratingSummaries[restaurant.id];
               const ownRating = ratings[restaurant.id];
               const averageLabel = summaryStatus === 'loading'
@@ -320,7 +435,7 @@ function App() {
                     </button>
                     <a
                       className="map-link"
-                      href={`https://www.google.com/maps?q=${restaurant.latitude},${restaurant.longitude}`}
+                      href={mapUrl}
                       target="_blank"
                       rel="noreferrer"
                       aria-label={`View ${restaurant.name} on Google Maps`}
@@ -352,6 +467,7 @@ function App() {
           </p>
         </aside>
       </div>
+      </>}
       <footer className="site-footer">
         Restaurant data &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap contributors</a>
       </footer>
