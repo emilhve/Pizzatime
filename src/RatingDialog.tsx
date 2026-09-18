@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Star, X } from 'lucide-react';
+import { X } from 'lucide-react';
 
 type RatingDialogProps = {
   restaurantName: string;
@@ -13,6 +13,7 @@ type RatingDialogProps = {
 
 export function RatingDialog({ restaurantName, currentRating, busy, error, onClose, onSave, onRemove }: RatingDialogProps) {
   const [rating, setRating] = useState(currentRating ?? 0);
+  const [hoverRating, setHoverRating] = useState<number | null>(null);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -33,19 +34,20 @@ export function RatingDialog({ restaurantName, currentRating, busy, error, onClo
         </button>
         <p className="section-kicker">Your pizza rating</p>
         <h2 id="rating-title">{restaurantName}</h2>
-        <div className="rating-choices" role="group" aria-label="Rating from 1 to 5 stars">
+        <div className="rating-choices" role="group" aria-label="Rating from 1 to 5 pizza slices" onMouseLeave={() => setHoverRating(null)}>
           {[1, 2, 3, 4, 5].map((value) => (
             <button
-              className={value <= rating ? 'rating-star selected' : 'rating-star'}
+              className={value <= (hoverRating ?? rating) ? 'rating-slice selected' : 'rating-slice'}
               type="button"
               aria-pressed={rating === value}
-              aria-label={`${value} star${value === 1 ? '' : 's'}`}
-              title={`${value} star${value === 1 ? '' : 's'}`}
+              aria-label={`${value} slice${value === 1 ? '' : 's'}`}
+              title={`${value} slice${value === 1 ? '' : 's'}`}
               key={value}
               onClick={() => setRating(value)}
+              onMouseEnter={() => setHoverRating(value)}
               disabled={busy}
             >
-              <Star size={34} strokeWidth={1.6} fill={value <= rating ? 'currentColor' : 'none'} aria-hidden="true" />
+              <img src="/pizza-slice.png" alt="" aria-hidden="true" />
             </button>
           ))}
         </div>

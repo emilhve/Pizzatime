@@ -336,7 +336,7 @@ function App() {
                           {restaurant.address && <span>{restaurant.address}</span>}
                         </div>
                         <button className="profile-rating-button" type="button" onClick={() => openRating(restaurant)} aria-label={`Edit your rating for ${restaurant.name}: ${ratings[restaurant.id]} out of 5`} title="Edit rating">
-                          <Star size={17} fill="currentColor" aria-hidden="true" /> {ratings[restaurant.id]}/5
+                          <img className="pizza-slice-icon" src="/pizza-slice.png" alt="" aria-hidden="true" /> {ratings[restaurant.id]}/5
                         </button>
                       </li>
                     ))}
@@ -354,9 +354,8 @@ function App() {
         </section>
       ) : <>
       <section className="intro" aria-labelledby="page-title">
-        <p className="eyebrow">Find your next slice</p>
         <h1 id="page-title">Pizzatime</h1>
-        <p className="subtitle">rate pizzaparlors inside Padua</p>
+        <p className="subtitle">Rate pizzaparlors in the heart of Padua</p>
       </section>
 
       <div className="browse-layout">
@@ -429,7 +428,7 @@ function App() {
                     <button className="rating-stat own-rating" type="button" onClick={() => openRating(restaurant)} aria-label={`Your rating for ${restaurant.name}: ${ownRating === undefined ? 'not rated' : `${ownRating} out of 5`}. Select to rate.`} title={`Rate ${restaurant.name}`}>
                       <span className="rating-stat-label">Your rating</span>
                       <span className="rating-stat-value">
-                        <Star size={15} fill={ownRating === undefined ? 'none' : 'currentColor'} aria-hidden="true" />
+                        <img className={`pizza-slice-icon${ownRating === undefined ? ' unrated' : ''}`} src="/pizza-slice.png" alt="" aria-hidden="true" />
                         {ownRating === undefined ? 'Rate' : `${ownRating}/5`}
                       </span>
                     </button>
@@ -451,7 +450,6 @@ function App() {
 
         <aside className="map-section" aria-label="Padua location map">
           <div className="map-heading">
-            <span>Our corner of Italy</span>
             <span aria-hidden="true">45.4&deg; N / 11.9&deg; E</span>
           </div>
           <a className="map-image-link" href="/padua-location-map.jpg" target="_blank" rel="noreferrer" title="Open full map">
