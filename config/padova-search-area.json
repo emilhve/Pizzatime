@@ -1,0 +1,14 @@
+{
+  "center": {
+    "latitude": 45.4037777778,
+    "longitude": 11.8819722222
+  },
+  "widthKm": 2.5,
+  "heightKm": 2.5,
+  "boundsApprox": {
+    "north": 45.415025,
+    "south": 45.392531,
+    "east": 11.897938,
+    "west": 11.866006
+  }
+}
