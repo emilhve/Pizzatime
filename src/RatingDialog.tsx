@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 
+const pizzaSliceSrc = `${import.meta.env.BASE_URL}pizza-slice.png`;
+
 type RatingDialogProps = {
   restaurantName: string;
   currentRating: number | undefined;
@@ -47,7 +49,7 @@ export function RatingDialog({ restaurantName, currentRating, busy, error, onClo
               onMouseEnter={() => setHoverRating(value)}
               disabled={busy}
             >
-              <img src="/pizza-slice.png" alt="" aria-hidden="true" />
+              <img src={pizzaSliceSrc} alt="" aria-hidden="true" />
             </button>
           ))}
         </div>

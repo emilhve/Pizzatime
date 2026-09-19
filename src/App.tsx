@@ -7,6 +7,9 @@ import { AuthDialog } from './AuthDialog';
 import { RatingDialog } from './RatingDialog';
 import { supabase } from './lib/supabase';
 
+const pizzaSliceSrc = `${import.meta.env.BASE_URL}pizza-slice.png`;
+const paduaLocationMapSrc = `${import.meta.env.BASE_URL}padua-location-map.jpg`;
+
 type Restaurant = {
   id: string;
   name: string;
@@ -336,7 +339,7 @@ function App() {
                           {restaurant.address && <span>{restaurant.address}</span>}
                         </div>
                         <button className="profile-rating-button" type="button" onClick={() => openRating(restaurant)} aria-label={`Edit your rating for ${restaurant.name}: ${ratings[restaurant.id]} out of 5`} title="Edit rating">
-                          <img className="pizza-slice-icon" src="/pizza-slice.png" alt="" aria-hidden="true" /> {ratings[restaurant.id]}/5
+                          <img className="pizza-slice-icon" src={pizzaSliceSrc} alt="" aria-hidden="true" /> {ratings[restaurant.id]}/5
                         </button>
                       </li>
                     ))}
@@ -428,7 +431,7 @@ function App() {
                     <button className="rating-stat own-rating" type="button" onClick={() => openRating(restaurant)} aria-label={`Your rating for ${restaurant.name}: ${ownRating === undefined ? 'not rated' : `${ownRating} out of 5`}. Select to rate.`} title={`Rate ${restaurant.name}`}>
                       <span className="rating-stat-label">Your rating</span>
                       <span className="rating-stat-value">
-                        <img className={`pizza-slice-icon${ownRating === undefined ? ' unrated' : ''}`} src="/pizza-slice.png" alt="" aria-hidden="true" />
+                        <img className={`pizza-slice-icon${ownRating === undefined ? ' unrated' : ''}`} src={pizzaSliceSrc} alt="" aria-hidden="true" />
                         {ownRating === undefined ? 'Rate' : `${ownRating}/5`}
                       </span>
                     </button>
@@ -452,9 +455,9 @@ function App() {
           <div className="map-heading">
             <span aria-hidden="true">45.4&deg; N / 11.9&deg; E</span>
           </div>
-          <a className="map-image-link" href="/padua-location-map.jpg" target="_blank" rel="noreferrer" title="Open full map">
+          <a className="map-image-link" href={paduaLocationMapSrc} target="_blank" rel="noreferrer" title="Open full map">
             <img
-              src="/padua-location-map.jpg"
+              src={paduaLocationMapSrc}
               alt="Map of Italy and nearby countries highlighting the Padua region in red"
               width="800"
               height="1137"
