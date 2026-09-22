@@ -119,6 +119,16 @@ Deploy the admin account-management function separately from the frontend:
 npx supabase functions deploy admin-users --project-ref YOUR_PROJECT_REF
 ```
 
+In the hosted Supabase dashboard, open **Authentication > URL Configuration** and set:
+
+- **Site URL:** `https://emilhve.github.io/Pizzatime/`
+- **Redirect URLs:** add `https://emilhve.github.io/Pizzatime/`
+
+The redirect URL must include the `/Pizzatime/` project path. If Supabase receives a redirect URL
+that is not in this allow-list, it falls back to the Site URL; leaving the hosted Site URL set to
+localhost therefore sends confirmation links to a page that other users cannot open. The localhost
+values in `supabase/config.toml` apply only to the local Supabase stack.
+
 To grant an existing account administrator access, update its matching row in `public.users` using the Supabase SQL editor. Replace the email address with the intended account:
 
 ```sql
@@ -136,4 +146,4 @@ Pushing to `main` runs [`.github/workflows/deploy.yml`](.github/workflows/deploy
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_PUBLISHABLE_KEY`
 
-The Vite base path is `/Pizzatime/` to match the GitHub Pages project URL. The Pages workflow deploys only the static frontend; database migrations and the `admin-users` Edge Function must be deployed with the Supabase CLI when they change.
+The Vite base path is `/Pizzatime/` to match the GitHub Pages project URL. The production build also copies `index.html` to `404.html`, allowing GitHub Pages to load the single-page app when a browser directly opens or refreshes a client-side route such as `/Pizzatime/profile`. The Pages workflow deploys only the static frontend; database migrations and the `admin-users` Edge Function must be deployed with the Supabase CLI when they change.

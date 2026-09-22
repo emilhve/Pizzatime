@@ -45,12 +45,13 @@ export function AuthDialog({ onClose }: AuthDialogProps) {
         if (error) setMessage(error.message);
         else onClose();
       } else {
+        const emailRedirectTo = new URL(import.meta.env.BASE_URL, window.location.origin).toString();
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             data: { username },
-            emailRedirectTo: `${window.location.origin}/`,
+            emailRedirectTo,
           },
         });
 

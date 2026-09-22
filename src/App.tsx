@@ -9,6 +9,12 @@ import { supabase } from './lib/supabase';
 
 const pizzaSliceSrc = `${import.meta.env.BASE_URL}pizza-slice.png`;
 const paduaLocationMapSrc = `${import.meta.env.BASE_URL}padua-location-map.jpg`;
+const homePath = import.meta.env.BASE_URL;
+const profilePath = `${import.meta.env.BASE_URL}profile`;
+
+function pageFromPath(pathname: string): 'home' | 'profile' {
+  return pathname === profilePath || pathname === `${profilePath}/` ? 'profile' : 'home';
+}
 
 type Restaurant = {
   id: string;
@@ -43,7 +49,7 @@ async function fetchRatingSummaries(): Promise<Record<string, RatingSummary>> {
 }
 
 function App() {
-  const [page, setPage] = useState<'home' | 'profile'>(() => window.location.pathname === '/profile' ? 'profile' : 'home');
+  const [page, setPage] = useState<'home' | 'profile'>(() => pageFromPath(window.location.pathname));
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
@@ -65,13 +71,13 @@ function App() {
   const summaryRequestId = useRef(0);
 
   function navigate(nextPage: 'home' | 'profile') {
-    const path = nextPage === 'profile' ? '/profile' : '/';
+    const path = nextPage === 'profile' ? profilePath : homePath;
     if (window.location.pathname !== path) window.history.pushState(null, '', path);
     setPage(nextPage);
   }
 
   useEffect(() => {
-    const onPopState = () => setPage(window.location.pathname === '/profile' ? 'profile' : 'home');
+    const onPopState = () => setPage(pageFromPath(window.location.pathname));
     window.addEventListener('popstate', onPopState);
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
